@@ -202,6 +202,91 @@ app.get('/remain_time', async (req, res) => {
     ;`;
     var fakergolddata = await executeQuery(pool, fakergoldSql, []);
 
+
+    //GBP
+    var gbpDownsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='GBP/AUD'
+      and min_std = 1
+      and write_date= '${cur_date}'
+      and hour = ${cur_hour}
+      and min_idx = ${cur_min_idx}
+      and bet_type= 'D';`
+    var gbpDowndata = await executeQuery(pool, gbpDownsql, []);
+
+
+    var gbpUpsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='GBP/AUD'
+      and min_std = 1
+      and write_date= '${cur_date}'
+      and hour = ${cur_hour}
+      and min_idx = ${cur_min_idx}
+      and bet_type= 'U';`
+    var gbpUpdata = await executeQuery(pool, gbpUpsql, []);
+
+    var gbpListSql = `  select name, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    where a.u_id = b.id
+      and item ='GBP/AUD'
+      and min_std = 1
+      and write_date= '${cur_date}'
+      and hour = ${cur_hour}
+      and min_idx = ${cur_min_idx}
+      group by name, c_name, bet_type, b.cal_yn
+      order by ifnull(sum(bet_money),0) desc;`;
+      
+    var gbpListdata = await executeQuery(pool, gbpListSql, []);
+
+    var fakergbpSql = `      select * from faker
+    where item ='GBP/AUD'
+    and min_std = 1
+    and write_date= '${cur_date}'
+    and hour = ${cur_hour}
+    and min = ${cur_min_idx}
+    and min_idx = ${cur_min_idx}
+    ;`;
+    var fakergbpdata = await executeQuery(pool, fakergbpSql, []);
+
+    //NAS
+    var nasDownsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='NAS100'
+      and min_std = 1
+      and write_date= '${cur_date}'
+      and hour = ${cur_hour}
+      and min_idx = ${cur_min_idx}
+      and bet_type= 'D';`
+    var nasDowndata = await executeQuery(pool, nasDownsql, []);
+
+
+    var nasUpsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='NAS100'
+      and min_std = 1
+      and write_date= '${cur_date}'
+      and hour = ${cur_hour}
+      and min_idx = ${cur_min_idx}
+      and bet_type= 'U';`
+    var nasUpdata = await executeQuery(pool, nasUpsql, []);
+
+    var nasListSql = `  select name, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    where a.u_id = b.id
+      and item ='NAS100'
+      and min_std = 1
+      and write_date= '${cur_date}'
+      and hour = ${cur_hour}
+      and min_idx = ${cur_min_idx}
+      group by name, c_name, bet_type, b.cal_yn
+      order by ifnull(sum(bet_money),0) desc;`;
+      
+    var nasListdata = await executeQuery(pool, nasListSql, []);
+
+    var fakernasSql = `      select * from faker
+    where item ='NAS100'
+    and min_std = 1
+    and write_date= '${cur_date}'
+    and hour = ${cur_hour}
+    and min = ${cur_min_idx}
+    and min_idx = ${cur_min_idx}
+    ;`;
+    var fakernasdata = await executeQuery(pool, fakernasSql, []);
+
     res.json({
         next_date : next_open_time_format,
         next_time : next_game_time, 
@@ -219,13 +304,24 @@ app.get('/remain_time', async (req, res) => {
         golddownmoney :goldDowndata[0].bet_money, 
         goldupmoney :goldUpdata[0].bet_money,
 
+        gbpdownmoney :gbpDowndata[0].bet_money, 
+        gbpupmoney :gbpUpdata[0].bet_money,
+
+        nasdownmoney :nasDowndata[0].bet_money, 
+        nasupmoney :nasUpdata[0].bet_money,
+
+
         btcList : btcListdata,
         ethList : ethListdata,
         goldList : goldListdata,
+        gbpList : gbpListdata,
+        nasList : nasListdata,
 
         fakerbtc :fakerbtcdata,
         fakereth :fakerethdata,
-        fakergold :fakergolddata
+        fakergold :fakergolddata,
+        fakergbp :fakergbpdata,
+        fakernas :fakernasdata
     });
 })
 

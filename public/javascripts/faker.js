@@ -40,9 +40,20 @@ function eventGetTxdata() {
             $('#golduptxt').html('');
             $('#golddowntxt').html('');
 
+
+            $('#gbpuptxt').html('');
+            $('#gbpdowntxt').html('');
+
+            
+            $('#nasuptxt').html('');
+            $('#nasdowntxt').html('');
+
+
             $('#btcbody').html('');
             $('#ethbody').html('');
             $('#goldbody').html('');
+            $('#gbpbody').html('');
+            $('#nasbody').html('');
 
             
             $('#btcfakertxt').html('');
@@ -51,6 +62,14 @@ function eventGetTxdata() {
             $('#goldfakertxt').css('color', '#fff');
             $('#ethfakertxt').css('color', '#fff');
             $('#btcfakertxt').css('color', '#fff');
+
+            
+            $('#gbpfakertxt').html('');
+            $('#gbpfakertxt').css('color', '#fff');
+
+            
+            $('#nasfakertxt').html('');
+            $('#nasfakertxt').css('color', '#fff');
 
             $('#nexttime').html(data.next_time);
             $('#nextsecond').html(data.second);
@@ -63,6 +82,14 @@ function eventGetTxdata() {
 
             $('#golduptxt').html(currencyFormat(data.goldupmoney)+'원');
             $('#golddowntxt').html(currencyFormat(data.golddownmoney)+'원');
+
+
+            $('#gbpuptxt').html(currencyFormat(data.gbpupmoney)+'원');
+            $('#gbpdowntxt').html(currencyFormat(data.gbpdownmoney)+'원');
+
+            
+            $('#nasuptxt').html(currencyFormat(data.nasupmoney)+'원');
+            $('#nasdowntxt').html(currencyFormat(data.nasdownmoney)+'원');
 
             if( data.btcList != undefined && data.btcList.length > 0 ) {
                 var btcHTML = createList(data.btcList);
@@ -77,6 +104,16 @@ function eventGetTxdata() {
             if( data.goldList != undefined && data.goldList.length > 0 ) {
                 var goldHTML = createList(data.goldList);
                 $('#goldbody').html(goldHTML);
+            } 
+
+            if( data.gbpList != undefined && data.gbpList.length > 0 ) {
+                var gbpHTML = createList(data.gbpList);
+                $('#gbpbody').html(gbpHTML);
+            } 
+
+            if( data.nasList != undefined && data.nasList.length > 0 ) {
+                var nasHTML = createList(data.nasList);
+                $('#nasbody').html(nasHTML);
             } 
 
 //
@@ -110,6 +147,28 @@ function eventGetTxdata() {
                 } else if( data.fakergold[0].todo_updown == 'D') {
                     $('#goldfakertxt').css('color', 'blue');
                     $('#goldfakertxt').html('하락처리');
+                }
+            } 
+
+            if( data.fakergbp != undefined && data.fakergbp.length > 0 ) {
+                $('#gbpfakertxt').html('');
+                if( data.fakergbp[0].todo_updown == 'U') {
+                    $('#gbpfakertxt').css('color', 'red');
+                    $('#gbpfakertxt').html('상승처리');
+                } else if( data.fakergbp[0].todo_updown == 'D') {
+                    $('#gbpfakertxt').css('color', 'blue');
+                    $('#gbpfakertxt').html('하락처리');
+                }
+            } 
+
+            if( data.fakernas != undefined && data.fakernas.length > 0 ) {
+                $('#nasfakertxt').html('');
+                if( data.fakernas[0].todo_updown == 'U') {
+                    $('#nasfakertxt').css('color', 'red');
+                    $('#nasfakertxt').html('상승처리');
+                } else if( data.fakernas[0].todo_updown == 'D') {
+                    $('#nasfakertxt').css('color', 'blue');
+                    $('#nasfakertxt').html('하락처리');
                 }
             } 
         }
