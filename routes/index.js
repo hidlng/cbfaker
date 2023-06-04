@@ -4,6 +4,7 @@ var router = express.Router();
 /* GET home page. */
 router.get('/', function(req, res, next) {
   var sess = req.session;
+	console.log(sess);
   var c_name = "";
 	if(sess != undefined && sess.name != undefined && sess.name != ''){
     //화면에 필요한 정보 세션에서 넣기
