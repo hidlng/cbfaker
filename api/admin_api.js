@@ -9,8 +9,7 @@ app.post('/login', async function(req, res) {
     
     var loginsql = `select * from company where c_userid = '${param.userid}' and c_userpw = '${param.userpw}' and family_id = '0';`
     var logindata = await executeQuery(pool, loginsql, []);
-    console.log(loginsql);
-    console.log(logindata);
+
     //로그인 성공시 세션에 로그인 정보 입력 실패시 결과값 변경
     if( logindata == undefined || logindata.length == 0 ) {
         result_txt = 'no'

@@ -4,6 +4,7 @@ var router = express.Router();
 /* GET home page. */
 router.get('/', function(req, res, next) {
   var sess = req.session;
+
   var c_name = "";
   console.log(sess.name);
 	if(sess != undefined && sess.name != undefined && sess.name != ''){
