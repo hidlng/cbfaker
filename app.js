@@ -26,7 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/admin',express.static(path.join(__dirname, 'admin')));
 
 app.use(session({
-  key: 'im24faker@!@#', // 세션키
+  key: 'chartbitfaker@!@#', // 세션키
   secret: '@#@$im24fakerkey12#@$#$',
   resave: true,
   saveUninitialized: true,

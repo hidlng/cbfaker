@@ -13,21 +13,21 @@ app.post('/insertFaker', async (req, res) => {
   var deletesql = `
   delete from faker 
   where item ='${req.body.item}'
-  and min_std = 1
+  and min_std = '${req.body.min_std}'
   and write_date= '${req.body.write_date}'
   and hour = '${req.body.hour}'
   and min_idx = '${req.body.min_idx}'`;
   await executeQuery(pool, deletesql, []);
 
   var sql = `
-  insert into faker ( item, min_std, write_date, hour, min, min_idx, todo_updown,pump_val ) values (
+  insert into faker ( item, min_std, write_date, hour, min, min_idx, todo_updown,pump_val,write_time ) values (
       '${req.body.item}',
       '${req.body.min_std}',
       '${req.body.write_date}',
       '${req.body.hour}',
+      '${req.body.min}',
       '${req.body.min_idx}',
-      '${req.body.min_idx}',
-      '${req.body.todo_updown}','0.1'
+      '${req.body.todo_updown}','0.1', now()
   );`;
   await executeQuery(pool, sql, []);
   res.json('ok')
@@ -36,6 +36,8 @@ app.post('/insertFaker', async (req, res) => {
 app.get('/remain_time', async (req, res) => {
 
     var min_std = 1;
+    var min_std_2 = 2;
+    var min_std_5 = 5;
     // var next_unixtime = mom_next.format('X'); //다음시간 구하기 위해 3분을 강제로 더해줌                    
     // var next_ddhh = mom_next.format('DD일 HH');
     //  var next_date = mom_next.format('YYYY-MM-DD');
@@ -45,23 +47,53 @@ app.get('/remain_time', async (req, res) => {
 
 
     var mom_next = getNextGameMoment(min_std , new moment());
+    var mom_next_2 = getNextGameMoment(min_std_2 , new moment());
+    var mom_next_5 = getNextGameMoment(min_std_5 , new moment());
 
+    var cur_min_2 = mom_next_2.minute();
+    var cur_min_5 = mom_next_5.minute();
+
+    var cur_date2 = mom_next_2.format('YYYY-MM-DD');
+    var cur_date5 = mom_next_5.format('YYYY-MM-DD');
     var cur_date = mom_next.format('YYYY-MM-DD');
+    
     var cur_hour = mom_next.hour();
     var cur_min = mom_next.minute();
+
+    var cur_hour_2 = mom_next_2.hour();
+    var cur_min_2 = mom_next_2.minute();
+
+
+    var cur_hour_5 = mom_next_5.hour();
+    var cur_min_5 = mom_next_5.minute();
+
+
     var cur_min_idx = parseInt(cur_min / min_std);
+    var cur_min_idx_2 = parseInt(cur_min_2 / min_std_2);
+    var cur_min_idx_5 = parseInt(cur_min_5 / min_std_5);
 
 
 
     var now = new moment();
     var next = getNextGameMoment(min_std , now , new moment());
+    var next2 = getNextGameMoment(min_std_2 , now , new moment());
+    var next5 = getNextGameMoment(min_std_5 , now , new moment());
     
     // console.log(now.format('YYYY-MM-DD hh:mm:ss'))
-   // console.log(next.format('YYYY-MM-DD hh:mm:ss'))
+    // console.log(next.format('YYYY-MM-DD hh:mm:ss'))
     //var total_second = moment.duration(next.diff(now)).asSeconds()
 
     var minute = moment.duration(next.diff(now)).minutes()
     var second = moment.duration(next.diff(now)).seconds()
+
+
+
+    var minute2 = moment.duration(next2.diff(now)).minutes()
+    var second2 = moment.duration(next2.diff(now)).seconds()
+
+
+    var minute5 = moment.duration(next5.diff(now)).minutes()
+    var second5 = moment.duration(next5.diff(now)).seconds()
    
     var total_second = minute * 60 + second;
     if(minute < 0 ) minute = 0;
@@ -72,10 +104,40 @@ app.get('/remain_time', async (req, res) => {
     if( cur_second < 10 ) {
         cur_second = '0'+cur_second;
     }
+
+
+    var total_second2 = minute2 * 60 + second2;
+    if(minute < 0 ) minute2 = 0;
+    if(second < 0 ) second2 = 0;
+    if(total_second2 < 0 ) total_second2 = 0;
+
+    var cur_second2 = 60 - second2;
+    if( cur_second2 < 10 ) {
+        cur_second2 = '0'+cur_second2;
+    }
+
+
+    var total_second5 = minute5 * 60 + second5;
+    if(minute < 0 ) minute5 = 0;
+    if(second < 0 ) second5 = 0;
+    if(total_second5 < 0 ) total_second5 = 0;
+
+    var cur_second5 = 60 - second5;
+    if( cur_second5 < 10 ) {
+        cur_second5 = '0'+cur_second5;
+    }
+
+
     var next_open_time_format = cur_date + ' '  + cur_hour+ ':' + cur_min + ':' + cur_second;
-    
     var next_game_time = cur_hour+ ':' + cur_min;
 
+    var next_open_time_format2 = cur_date2 + ' '  + cur_hour_2+ ':' + cur_min_2 + ':' + cur_second2;
+    var next_game_time2 = cur_hour_2+ ':' + cur_min_2;
+
+    var next_open_time_format5 = cur_date5 + ' '  + cur_hour_5+ ':' + cur_min_5 + ':' + cur_second5;
+    var next_game_time5 = cur_hour_5+ ':' + cur_min_5;
+
+    
     //BIT
     var btcDownsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
     where item ='BTC/USD'
@@ -96,14 +158,14 @@ app.get('/remain_time', async (req, res) => {
       and bet_type= 'U';`
     var btcUpdata = await executeQuery(pool, btcUpsql, []);
 
-    var btcListSql = `  select name, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    var btcListSql = `  select name,  a.min_std, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
     where a.u_id = b.id
       and item ='BTC/USD'
       and min_std = 1
       and write_date= '${cur_date}'
       and hour = ${cur_hour}
       and min_idx = ${cur_min_idx}
-      group by name, c_name, bet_type, b.cal_yn
+      group by name,  a.min_std, c_name, bet_type, b.cal_yn
       order by ifnull(sum(bet_money),0) desc;`;
       
     var btcListdata = await executeQuery(pool, btcListSql, []);
@@ -138,14 +200,14 @@ app.get('/remain_time', async (req, res) => {
       and bet_type= 'U';`
     var ethUpdata = await executeQuery(pool, ethUpsql, []);
 
-    var ethListSql = `  select name, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    var ethListSql = `  select name,  a.min_std, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
     where a.u_id = b.id
       and item ='ETH/USD'
       and min_std = 1
       and write_date= '${cur_date}'
       and hour = ${cur_hour}
       and min_idx = ${cur_min_idx}
-      group by name, c_name, bet_type, b.cal_yn
+      group by name,  a.min_std, c_name, bet_type, b.cal_yn
       order by ifnull(sum(bet_money),0) desc;`;
       
     var ethListdata = await executeQuery(pool, ethListSql, []);
@@ -180,14 +242,14 @@ app.get('/remain_time', async (req, res) => {
       and bet_type= 'U';`
     var goldUpdata = await executeQuery(pool, goldUpsql, []);
 
-    var goldListSql = `  select name, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    var goldListSql = `  select name,  a.min_std, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
     where a.u_id = b.id
       and item ='GOLD'
       and min_std = 1
       and write_date= '${cur_date}'
       and hour = ${cur_hour}
       and min_idx = ${cur_min_idx}
-      group by name, c_name, bet_type, b.cal_yn
+      group by name,  a.min_std, c_name, bet_type, b.cal_yn
       order by ifnull(sum(bet_money),0) desc;`;
       
     var goldListdata = await executeQuery(pool, goldListSql, []);
@@ -203,99 +265,293 @@ app.get('/remain_time', async (req, res) => {
     var fakergolddata = await executeQuery(pool, fakergoldSql, []);
 
 
-    //GBP
-    var gbpDownsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    // //EURUSD
+    var eurDownsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='EUR/USD'
+      and min_std = 1
+      and write_date= '${cur_date}'
+      and hour = ${cur_hour}
+      and min_idx = ${cur_min_idx}
+      and bet_type= 'D';`
+    var eurDowndata = await executeQuery(pool, eurDownsql, []);
+
+
+    var eurUpsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='EUR/USD'
+      and min_std = 1
+      and write_date= '${cur_date}'
+      and hour = ${cur_hour}
+      and min_idx = ${cur_min_idx}
+      and bet_type= 'U';`
+    var eurUpdata = await executeQuery(pool, eurUpsql, []);
+
+    var eurListSql = `  select name,  a.min_std, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    where a.u_id = b.id
+      and item ='EUR/USD'
+      and min_std = 1
+      and write_date= '${cur_date}'
+      and hour = ${cur_hour}
+      and min_idx = ${cur_min_idx}
+      group by name,  a.min_std, c_name, bet_type, b.cal_yn
+      order by ifnull(sum(bet_money),0) desc;`;
+      
+    var eurusdListdata = await executeQuery(pool, eurListSql, []);
+
+    // var fakereurusdSql = `  select * from faker
+    // where item ='EUR/USD'
+    // and min_std = 1
+    // and write_date= '${cur_date}'
+    // and hour = ${cur_hour}
+    // and min = ${cur_min_idx}
+    // and min_idx = ${cur_min_idx}
+    // ;`;
+    // var fakereurusddata = await executeQuery(pool, fakereurusdSql, []);
+
+
+    // //EURUSD2
+    var eurDownsql2 = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='EUR/USD'
+      and min_std = 2
+      and write_date= '${cur_date2}'
+      and hour = ${cur_hour_2}
+      and min_idx = ${cur_min_idx_2}
+      and bet_type= 'D';`
+    var eurDowndata2 = await executeQuery(pool, eurDownsql2, []);
+
+
+    var eurUpsql2 = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='EUR/USD'
+      and min_std = 2
+      and write_date= '${cur_date2}'
+      and hour = ${cur_hour_2}
+      and min_idx = ${cur_min_idx_2}
+      and bet_type= 'U';`
+    var eurUpdata2 = await executeQuery(pool, eurUpsql2, []);
+
+    var eurListSql2 = `  select name,  a.min_std, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    where a.u_id = b.id
+      and item ='EUR/USD'
+      and min_std = 2
+      and write_date= '${cur_date2}'
+      and hour = ${cur_hour_2}
+      and min_idx = ${cur_min_idx_2}
+      group by name,  a.min_std, c_name, bet_type, b.cal_yn
+      order by ifnull(sum(bet_money),0) desc;`;
+      
+    var eurusdListdata2 = await executeQuery(pool, eurListSql2, []);
+
+     var fakereurusdSql2 = `  select * from faker
+     where item ='EUR/USD'
+     and min_std = 2
+     and write_date= '${cur_date}'
+     and hour = ${cur_hour_2}
+     and min = ${cur_min_2}
+     and min_idx = ${cur_min_idx_2}
+     ;`;
+     var fakereurusddata2 = await executeQuery(pool, fakereurusdSql2, []);
+
+
+    //EURUSD5
+    var eurDownsql5 = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='EUR/USD'
+      and min_std = 5
+      and write_date= '${cur_date5}'
+      and hour = ${cur_hour_5}
+      and min_idx = ${cur_min_idx_5}
+      and bet_type= 'D';`
+    var eurDowndata5 = await executeQuery(pool, eurDownsql5, []);
+
+
+    var eurUpsql5 = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='EUR/USD'
+      and min_std = 5
+      and write_date= '${cur_date5}'
+      and hour = ${cur_hour_5}
+      and min_idx = ${cur_min_idx_5}
+      and bet_type= 'U';`
+    var eurUpdata5 = await executeQuery(pool, eurUpsql5, []);
+
+    var eurListSql5 = `  select name,  a.min_std, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    where a.u_id = b.id
+      and item ='EUR/USD'
+      and min_std = 5
+      and write_date= '${cur_date5}'
+      and hour = ${cur_hour_5}
+      and min_idx = ${cur_min_idx_5}
+      group by name,  a.min_std, c_name, bet_type, b.cal_yn
+      order by ifnull(sum(bet_money),0) desc;`;
+      
+    var eurusdListdata5 = await executeQuery(pool, eurListSql5, []);
+
+    var fakereurusdSql5 = `  select * from faker
+    where item ='EUR/USD'
+    and min_std = 5
+    and write_date= '${cur_date5}'
+    and hour = ${cur_hour_5}
+    and min = ${cur_min_5}
+    and min_idx = ${cur_min_idx_5}
+    ;`;
+    var fakereurusddata5 = await executeQuery(pool, fakereurusdSql5, []);
+
+    //GBPAUD 1
+    var gbpaudDownsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
     where item ='GBP/AUD'
       and min_std = 1
       and write_date= '${cur_date}'
       and hour = ${cur_hour}
       and min_idx = ${cur_min_idx}
       and bet_type= 'D';`
-    var gbpDowndata = await executeQuery(pool, gbpDownsql, []);
+    var gbpaudDowndata = await executeQuery(pool, gbpaudDownsql, []);
 
 
-    var gbpUpsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    var gbpaudUpsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
     where item ='GBP/AUD'
       and min_std = 1
       and write_date= '${cur_date}'
       and hour = ${cur_hour}
       and min_idx = ${cur_min_idx}
       and bet_type= 'U';`
-    var gbpUpdata = await executeQuery(pool, gbpUpsql, []);
+    var gbpaudUpdata = await executeQuery(pool, gbpaudUpsql, []);
 
-    var gbpListSql = `  select name, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    var gbpaudListSql = `  select name,  a.min_std, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
     where a.u_id = b.id
       and item ='GBP/AUD'
       and min_std = 1
       and write_date= '${cur_date}'
       and hour = ${cur_hour}
       and min_idx = ${cur_min_idx}
-      group by name, c_name, bet_type, b.cal_yn
+      group by name,  a.min_std, c_name, bet_type, b.cal_yn
       order by ifnull(sum(bet_money),0) desc;`;
       
-    var gbpListdata = await executeQuery(pool, gbpListSql, []);
+    var gbpaudListdata = await executeQuery(pool, gbpaudListSql, []);
 
-    var fakergbpSql = `      select * from faker
+    // var fakergbpaudSql = `  select * from faker
+    // where item ='GBP/AUD'
+    // and min_std = 1
+    // and write_date= '${cur_date}'
+    // and hour = ${cur_hour}
+    // and min = ${cur_min}
+    // and min_idx = ${cur_min_idx}
+    // ;`;
+    // var fakergbpauddata = await executeQuery(pool, fakergbpaudSql, []);
+
+
+    //GBPAUD 2
+    var gbpaudDownsql2 = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
     where item ='GBP/AUD'
-    and min_std = 1
-    and write_date= '${cur_date}'
-    and hour = ${cur_hour}
-    and min = ${cur_min_idx}
-    and min_idx = ${cur_min_idx}
-    ;`;
-    var fakergbpdata = await executeQuery(pool, fakergbpSql, []);
-
-    //NAS
-    var nasDownsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
-    where item ='NAS100'
-      and min_std = 1
-      and write_date= '${cur_date}'
-      and hour = ${cur_hour}
-      and min_idx = ${cur_min_idx}
+      and min_std = 2
+      and write_date= '${cur_date2}'
+      and hour = ${cur_hour_2}
+      and min_idx = ${cur_min_idx_2}
       and bet_type= 'D';`
-    var nasDowndata = await executeQuery(pool, nasDownsql, []);
+    var gbpaudDowndata2 = await executeQuery(pool, gbpaudDownsql2, []);
 
 
-    var nasUpsql = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
-    where item ='NAS100'
-      and min_std = 1
-      and write_date= '${cur_date}'
-      and hour = ${cur_hour}
-      and min_idx = ${cur_min_idx}
+    var gbpaudUpsql2 = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='GBP/AUD'
+      and min_std = 2
+      and write_date= '${cur_date2}'
+      and hour = ${cur_hour_2}
+      and min_idx = ${cur_min_idx_2}
       and bet_type= 'U';`
-    var nasUpdata = await executeQuery(pool, nasUpsql, []);
+    var gbpaudUpdata2 = await executeQuery(pool, gbpaudUpsql2, []);
 
-    var nasListSql = `  select name, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    var gbpaudListSql2 = `  select name,  a.min_std, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
     where a.u_id = b.id
-      and item ='NAS100'
-      and min_std = 1
-      and write_date= '${cur_date}'
-      and hour = ${cur_hour}
-      and min_idx = ${cur_min_idx}
-      group by name, c_name, bet_type, b.cal_yn
+      and item ='GBP/AUD'
+      and min_std = 2
+      and write_date= '${cur_date2}'
+      and hour = ${cur_hour_2}
+      and min_idx = ${cur_min_idx_2}
+      group by name,  a.min_std, c_name, bet_type, b.cal_yn
       order by ifnull(sum(bet_money),0) desc;`;
       
-    var nasListdata = await executeQuery(pool, nasListSql, []);
+    var gbpaudListdata2 = await executeQuery(pool, gbpaudListSql2, []);
 
-    var fakernasSql = `      select * from faker
-    where item ='NAS100'
-    and min_std = 1
-    and write_date= '${cur_date}'
-    and hour = ${cur_hour}
-    and min = ${cur_min_idx}
-    and min_idx = ${cur_min_idx}
+     var fakergbpaudSql2 = `  select * from faker
+     where item ='GBP/AUD'
+     and min_std = 2
+     and write_date= '${cur_date}'
+     and hour = ${cur_hour}
+     and min = ${cur_min_2}
+     and min_idx = ${cur_min_idx_2}
+     ;`;
+     var fakergbpauddata2 = await executeQuery(pool, fakergbpaudSql2, []);
+
+
+    //GBPAUD 5
+    var gbpaudDownsql5 = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='GBP/AUD'
+      and min_std = 5
+      and write_date= '${cur_date5}'
+      and hour = ${cur_hour_5}
+      and min_idx = ${cur_min_idx_5}
+      and bet_type= 'D';`
+    var gbpaudDowndata5 = await executeQuery(pool, gbpaudDownsql5, []);
+
+
+    var gbpaudUpsql5 = `select ifnull(sum(bet_money),0) as bet_money from game_tx_view 
+    where item ='GBP/AUD'
+      and min_std = 5
+      and write_date= '${cur_date5}'
+      and hour = ${cur_hour_5}
+      and min_idx = ${cur_min_idx_5}
+      and bet_type= 'U';`
+    var gbpaudUpdata5 = await executeQuery(pool, gbpaudUpsql5, []);
+
+    var gbpaudListSql5 = `  select name,  a.min_std, c_name, ifnull(sum(bet_money),0) as bet_money, bet_type, b.cal_yn from game_tx_view a, user_view b
+    where a.u_id = b.id
+      and item ='GBP/AUD'
+      and min_std = 5
+      and write_date= '${cur_date5}'
+      and hour = ${cur_hour_5}
+      and min_idx = ${cur_min_idx_5}
+      group by name,  a.min_std, c_name, bet_type, b.cal_yn
+      order by ifnull(sum(bet_money),0) desc;`;
+      
+    var gbpaudListdata5 = await executeQuery(pool, gbpaudListSql5, []);
+
+    var fakergbpaudSql5 = `  select * from faker
+    where item ='GBP/AUD'
+    and min_std = 5
+    and write_date= '${cur_date5}'
+    and hour = ${cur_hour_5}
+    and min = ${cur_min_5}
+    and min_idx = ${cur_min_idx_5}
     ;`;
-    var fakernasdata = await executeQuery(pool, fakernasSql, []);
+    var fakergbpauddata5 = await executeQuery(pool, fakergbpaudSql5, []);
 
     res.json({
         next_date : next_open_time_format,
-        next_time : next_game_time, 
+        next_time : next_game_time,
+
+        next_date2 : next_open_time_format2,
+        next_time2 : next_game_time2,
+		
+		next_date5 : next_open_time_format5,
+        next_time5 : next_game_time5,
+
         hour : cur_hour,
         minute : cur_min , 
         second : second, 
         total_second: total_second, 
+
         min_idx : cur_min_idx, 
         game_date : cur_date,
+
+        
+        minute2 : cur_min_2 , 
+        minute5 : cur_min_5 , 
+
+        min_idx_2 : cur_min_idx_2, 
+        min_idx_5 : cur_min_idx_5, 
+        
+        second2 : second2, 
+        total_second2: total_second2, 
+        
+        second5 : second5, 
+        total_second5: total_second5,
+
         
         btcdownmoney :btcDowndata[0].bet_money, 
         btcupmoney :btcUpdata[0].bet_money, 
@@ -304,24 +560,48 @@ app.get('/remain_time', async (req, res) => {
         golddownmoney :goldDowndata[0].bet_money, 
         goldupmoney :goldUpdata[0].bet_money,
 
-        gbpdownmoney :gbpDowndata[0].bet_money, 
-        gbpupmoney :gbpUpdata[0].bet_money,
 
-        nasdownmoney :nasDowndata[0].bet_money, 
-        nasupmoney :nasUpdata[0].bet_money,
+        eurusddownmoney :eurDowndata[0].bet_money, 
+        eurusdupmoney :eurUpdata[0].bet_money,
+
+        eurusddownmoney2 :eurDowndata2[0].bet_money, 
+        eurusdupmoney2 :eurUpdata2[0].bet_money,
+
+        eurusddownmoney5 :eurDowndata5[0].bet_money, 
+        eurusdupmoney5 :eurUpdata5[0].bet_money,
+
+        gbpauddownmoney :gbpaudDowndata[0].bet_money, 
+        gbpaudupmoney :gbpaudUpdata[0].bet_money,
+
+        gbpauddownmoney2 :gbpaudDowndata2[0].bet_money, 
+        gbpaudupmoney2 :gbpaudUpdata2[0].bet_money,
+
+        gbpauddownmoney5 :gbpaudDowndata5[0].bet_money, 
+        gbpaudupmoney5 :gbpaudUpdata5[0].bet_money,
 
 
         btcList : btcListdata,
         ethList : ethListdata,
         goldList : goldListdata,
-        gbpList : gbpListdata,
-        nasList : nasListdata,
+        eurusdList : eurusdListdata,
+        eurusdList2 : eurusdListdata2,
+        eurusdList5 : eurusdListdata5,
+        
+        gbpaudList : gbpaudListdata,
+        gbpaudList2 : gbpaudListdata2,
+        gbpaudList5 : gbpaudListdata5,
+
 
         fakerbtc :fakerbtcdata,
         fakereth :fakerethdata,
         fakergold :fakergolddata,
-        fakergbp :fakergbpdata,
-        fakernas :fakernasdata
+        // fakereurusd :fakereurusddata,
+        fakereurusd2 :fakereurusddata2,
+        fakereurusd5 :fakereurusddata5,
+        
+        // fakergbpaud :fakergbpauddata,
+        fakergbpaud2 :fakergbpauddata2,
+        fakergbpaud5 :fakergbpauddata5
     });
 })
 

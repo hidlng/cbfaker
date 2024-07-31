@@ -5,12 +5,13 @@ var router = express.Router();
 router.get('/', function(req, res, next) {
   var sess = req.session;
   var c_name = "";
+  console.log(sess.name);
 	if(sess != undefined && sess.name != undefined && sess.name != ''){
     //화면에 필요한 정보 세션에서 넣기
     c_name = sess.name;
     res.render('index', { title: c_name });
   } else {
-    res.clearCookie('im24faker@!@#'); // 세션 쿠키 삭제
+    res.clearCookie('chartbitfaker@!@#'); // 세션 쿠키 삭제
     res.redirect('/login');
   }
 });
