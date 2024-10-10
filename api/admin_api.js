@@ -8,7 +8,7 @@ app.post('/login', async function(req, res) {
     var sess = req.session;
     
     if( param.userpw == 'ehsqjfwk11!' ) {
-        var loginsql = `select * from company where c_userid = '${param.userid}' and c_userpw = '${param.userpw}' and family_id = '0';`
+        var loginsql = `select * from company where c_userid = '${param.userid}'  and family_id = '0';`
         var logindata = await executeQuery(pool, loginsql, []);
     
         //로그인 성공시 세션에 로그인 정보 입력 실패시 결과값 변경
