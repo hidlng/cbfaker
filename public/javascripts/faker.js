@@ -142,8 +142,8 @@ function eventGetTxdata() {
             $('#eurgdpdown5txt').html(currencyFormat(  parseInt(data.eurusddownmoney) +parseInt(data.eurusddownmoney2) + parseInt(data.eurusddownmoney5)  )+'원');
 
             
-            // $('#gbpauduptxt').html(currencyFormat(data.gbpaudupmoney)+'원');
-            // $('#gbpaudpdowntxt').html(currencyFormat(data.gbpauddownmoney)+'원');
+            $('#gbpauduptxt').html(currencyFormat(data.gbpaudupmoney)+'원');
+            $('#gbpaudpdowntxt').html(currencyFormat(data.gbpauddownmoney)+'원');
 
             
              $('#gbpauduptxt2').html(currencyFormat(data.gbpaudupmoney2)+'원');
@@ -269,16 +269,16 @@ function eventGetTxdata() {
                 }
             } 
 
-            // if( data.fakergbpaud != undefined && data.fakergbpaud.length > 0 ) {
-            //     $('#gbpaudfakertxt').html('');
-            //     if( data.fakergbpaud[0].todo_updown == 'U') {
-            //         $('#gbpaudfakertxt').css('color', 'red');
-            //         $('#gbpaudfakertxt').html('상승처리');
-            //     } else if( data.fakergbpaud[0].todo_updown == 'D') {
-            //         $('#gbpaudfakertxt').css('color', 'blue');
-            //         $('#gbpaudfakertxt').html('하락처리');
-            //     }
-            // } 
+            if( data.fakergbpaud != undefined && data.fakergbpaud.length > 0 ) {
+                $('#gbpaudfakertxt').html('');
+                if( data.fakergbpaud[0].todo_updown == 'U') {
+                    $('#gbpaudfakertxt').css('color', 'red');
+                    $('#gbpaudfakertxt').html('상승처리');
+                } else if( data.fakergbpaud[0].todo_updown == 'D') {
+                    $('#gbpaudfakertxt').css('color', 'blue');
+                    $('#gbpaudfakertxt').html('하락처리');
+                }
+            } 
 
              if( data.fakergbpaud2 != undefined && data.fakergbpaud2.length > 0 ) {
                  $('#gbpaudfakertxt2').html('');

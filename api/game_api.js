@@ -425,15 +425,15 @@ app.get('/remain_time', async (req, res) => {
       
     var gbpaudListdata = await executeQuery(pool, gbpaudListSql, []);
 
-    // var fakergbpaudSql = `  select * from faker
-    // where item ='GBP/AUD'
-    // and min_std = 1
-    // and write_date= '${cur_date}'
-    // and hour = ${cur_hour}
-    // and min = ${cur_min}
-    // and min_idx = ${cur_min_idx}
-    // ;`;
-    // var fakergbpauddata = await executeQuery(pool, fakergbpaudSql, []);
+    var fakergbpaudSql = `  select * from faker
+    where item ='GBP/AUD'
+    and min_std = 1
+    and write_date= '${cur_date}'
+    and hour = ${cur_hour}
+    and min = ${cur_min}
+    and min_idx = ${cur_min_idx}
+    ;`;
+    var fakergbpauddata = await executeQuery(pool, fakergbpaudSql, []);
 
 
     //GBPAUD 2
@@ -599,7 +599,7 @@ app.get('/remain_time', async (req, res) => {
         fakereurusd2 :fakereurusddata2,
         fakereurusd5 :fakereurusddata5,
         
-        // fakergbpaud :fakergbpauddata,
+        fakergbpaud :fakergbpauddata,
         fakergbpaud2 :fakergbpauddata2,
         fakergbpaud5 :fakergbpauddata5
     });
